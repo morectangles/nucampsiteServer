@@ -6,6 +6,9 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const session = require('express-session');
 const FileStore = require('session-file-store')(session);
+//passport authentication
+const passport = require('passport');
+const authenticate = require('./authenticate');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -47,29 +50,28 @@ app.use(session({
   store: new FileStore()
 }));
 
+//passport - only necessary if you are using session-based authentication, 
+//2 middleware functions provided by passport to check incoming requests to see
+//if there's an existing session for the client, if so, it comes in as req.user
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
 //authentication
 function auth(req, res, next) {
-  console.log(req.session);
-  //signedCookies provided by Cookieparser
-  // if (!req.signedCookies.user)
-  // check if there's a valid session or not - first case is invalid session
-  if (!req.session.user) {
+  console.log(req.user);
+
+  if (!req.user) {
     const err = new Error('You are not authenticated!');
     err.status = 401;
     return next(err);
   } else {
-    if (req.session.user === 'authenticated') {
-      return next();
-    } else {
-        const err = new Error('You are not authenticated!');
-        err.status = 401;
-        return next(err);
-    }
-  }
+    return next();
+  } 
 }
+
 
 app.use(auth);
 
