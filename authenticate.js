@@ -44,6 +44,17 @@ exports.jwtPassport = passport.use(
     )
 );
 
+
 //verify that an incoming request is from a user - using jwt strategy, not sessions
 //setting it up here to use in other modules whenever we want to authenticate w/ JWT
 exports.verifyUser = passport.authenticate('jwt', {session: false});
+
+exports.verifyAdmin = function(req, res, next) {
+    if (req.user.admin) {
+        return next();
+    } else {
+        res.statusCode = 403;
+        err = new Error("You are not authorized to perform this operation!");
+        return next(err);
+    }
+}
